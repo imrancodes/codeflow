@@ -1,0 +1,232 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  CheckCircle,
+  CodeXml,
+  ArrowRight,
+  ArrowLeft,
+  PlusCircle,
+  LogIn,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Navbar from "@/components/home/Navbar";
+import { useUser } from "@/api/useUser";
+import { useSignOut } from "@/api/auth";
+import { Navigate } from "react-router-dom";
+
+const languages = [
+  { name: "JavaScript", logo: "/logos/js.png" },
+  { name: "Python", logo: "/logos/python.webp" },
+  { name: "C++", logo: "/logos/cpp.png" },
+  { name: "Java", logo: "/logos/java.svg" },
+  { name: "HTML/CSS/JS", logo: "/logos/web.png" },
+];
+
+const UserSelection = () => {
+  const [step, setStep] = useState<"mode" | "language" | "room">("mode");
+  const [selectedMode, setSelectedMode] = useState<"solo" | "friends" | null>(
+    null
+  );
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState("");
+
+  const { data, isLoading } = useUser();
+  const signOutMutation = useSignOut();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!data) return <Navigate to="/" replace />;
+
+  return (
+    <div className="pt-10 px-6">
+      <Navbar
+        data={data}
+        signOutMutation={signOutMutation}
+        isLoading={isLoading}
+      />
+      <div className="flex flex-col items-center">
+        {step === "mode" && (
+          <div className="flex flex-col items-center justify-center py-12 mt-12 w-full max-w-5xl">
+            <h1 className="text-4xl font-bold mb-10">
+              How Would You Like to Code?
+            </h1>
+            <div className="grid md:grid-cols-2 gap-8 w-full">
+              {["solo", "friends"].map((mode) => {
+                const isSelected = selectedMode === mode;
+                return (
+                  <Card
+                    key={mode}
+                    className={`group relative bg-white/5 border ${
+                      isSelected ? "border-main shadow-xl" : "border-white/10"
+                    } hover:border-main hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden`}
+                    onClick={() => setSelectedMode(mode as "solo" | "friends")}
+                  >
+                    <CardContent className="p-8 flex flex-col items-center text-center space-y-6">
+                      <img
+                        src={
+                          mode === "solo"
+                            ? "/code-solo.png"
+                            : "/code-with-friends.png"
+                        }
+                        alt={mode}
+                        className="w-96 h-40 object-contain transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <h2 className="text-2xl font-semibold text-white">
+                        {mode === "solo" ? "Code Solo" : "Code with Friends"}
+                      </h2>
+                      <p className="text-gray-400">
+                        {mode === "solo"
+                          ? "Focus on your own code in a distraction-free editor."
+                          : "Collaborate in real-time with teammates or friends."}
+                      </p>
+                    </CardContent>
+                    {isSelected && (
+                      <CheckCircle className="absolute top-4 right-4 w-10 h-10 text-main" />
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+
+            <Button
+              className={`mt-10 bg-main text-black font-semibold hover:bg-main/80 ${
+                selectedMode ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
+              disabled={!selectedMode}
+              onClick={() => {
+                if (selectedMode === "friends") setStep("room");
+                else setStep("language");
+              }}
+            >
+              Next
+              <ArrowRight />
+            </Button>
+          </div>
+        )}
+
+        {step === "room" && selectedMode === "friends" && (
+          <div className="flex flex-col items-center justify-center py-12 w-full max-w-5xl mt-12">
+            <h1 className="text-4xl font-bold mb-10 text-center">
+              Collaborate with Friends
+            </h1>
+            <div className="grid md:grid-cols-2 gap-8 w-full">
+              {/* Create Room Card */}
+              <Card className="group bg-white/5 border border-white/10 hover:border-main hover:shadow-xl transition-all duration-300 rounded-2xl p-8 flex flex-col items-center text-center space-y-6 pt-14">
+                <h2 className="text-2xl font-semibold text-white">
+                  Create a New Room
+                </h2>
+                <p className="text-gray-400">
+                  Start a fresh coding session and invite your friends to
+                  collaborate in real-time.
+                </p>
+                <Button
+                  className="bg-main text-black font-semibold hover:bg-main/80 px-6 mt-4 cursor-pointer"
+                  onClick={() => setStep("language")}
+                >
+                  <PlusCircle />
+                  Create Room
+                </Button>
+              </Card>
+
+              {/* Join Room Card */}
+              <Card className="group bg-white/5 border border-white/10 hover:border-main hover:shadow-xl transition-all duration-300 rounded-2xl p-8 flex flex-col items-center text-center space-y-6">
+                <h2 className="text-2xl font-semibold text-white">
+                  Join an Existing Room
+                </h2>
+                <p className="text-gray-400">
+                  Already have a room ID? Enter it below to join your friends’
+                  session.
+                </p>
+                <input
+                  type="text"
+                  placeholder="Enter Room ID"
+                  className="mt-4 w-full px-4 py-2 rounded-md bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-main"
+                  value={roomId}
+                  onChange={(e) => setRoomId(e.target.value)}
+                />
+                <Button
+                  className={`bg-main text-black font-semibold hover:bg-main/80 px-6 mt-4 ${
+                    roomId ? "cursor-pointer" : ""
+                  }`}
+                  onClick={() => console.log("Join Room with ID:", roomId)}
+                  disabled={!roomId}
+                >
+                  <LogIn />
+                  Join Room
+                </Button>
+              </Card>
+            </div>
+
+            <Button
+              className="mt-10 px-6 py-2 bg-transparent border border-white/20 rounded-md font-semibold flex items-center gap-2"
+              onClick={() => setStep("mode")}
+            >
+              <ArrowLeft /> Previous
+            </Button>
+          </div>
+        )}
+
+        {step === "language" && (
+          <div className="flex flex-col items-center justify-center py-6 mt-6 w-full max-w-5xl">
+            <h1 className="text-4xl font-bold mb-10">Select Your Language</h1>
+            <div className="grid md:grid-cols-3 gap-8 w-full">
+              {languages.map((lang) => {
+                const isSelected = selectedLanguage === lang.name;
+                return (
+                  <Card
+                    key={lang.name}
+                    className={`group relative bg-white/5 border ${
+                      isSelected ? "border-main shadow-xl" : "border-white/10"
+                    } hover:border-main hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden`}
+                    onClick={() => setSelectedLanguage(lang.name)}
+                  >
+                    <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
+                      <img
+                        src={lang.logo}
+                        alt={lang.name}
+                        className="w-60 h-24 object-contain transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <h2 className="text-2xl font-semibold text-white">
+                        {lang.name}
+                      </h2>
+                    </CardContent>
+                    {isSelected && (
+                      <CheckCircle className="absolute top-4 right-4 w-10 h-10 text-main" />
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-center items-center gap-10">
+              <Button
+                className={`mt-10 font-semibold px-6 cursor-pointer bg-transparent hover:bg-gray-800 border-white/20 border`}
+                onClick={() => setStep("mode")}
+              >
+                <ArrowLeft />
+                Previous
+              </Button>
+              <Button
+                className={`mt-10 bg-main text-black font-semibold hover:bg-main/80 px-6 ${
+                  selectedLanguage ? "cursor-pointer" : "cursor-not-allowed"
+                }`}
+                disabled={!selectedLanguage}
+                onClick={() =>
+                  console.log(
+                    "Start coding with:",
+                    selectedMode,
+                    selectedLanguage
+                  )
+                }
+              >
+                <CodeXml />
+                Start Coding
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default UserSelection;

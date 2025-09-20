@@ -13,7 +13,8 @@ import SignUp from "./components/auth/SignUp.tsx";
 import AuthLayout from "./components/auth/AuthLayout.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
-import HomeLayout from "./components/Home/HomeLayout.tsx";
+import HomeLayout from "./components/home/HomeLayout.tsx";
+import UserSelection from "./components/selections/UserSelection.tsx";
 
 const client = new QueryClient();
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter(
 
       <Route path="/" element={<HomeLayout />}>
         <Route index element={<App />} />
+        <Route path="start" element={<UserSelection />} />
       </Route>
     </>
   )
