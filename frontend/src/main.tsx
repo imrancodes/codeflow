@@ -15,6 +15,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import HomeLayout from "./components/home/HomeLayout.tsx";
 import UserSelection from "./components/selections/UserSelection.tsx";
+import CodeEditor from "./components/code-editor/CodeEditor.tsx";
 
 const client = new QueryClient();
 
@@ -29,6 +30,7 @@ const router = createBrowserRouter(
       <Route path="/" element={<HomeLayout />}>
         <Route index element={<App />} />
         <Route path="start" element={<UserSelection />} />
+        <Route path="editor" element={<CodeEditor />} />
       </Route>
     </>
   )

@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/home/Navbar";
 import { useUser } from "@/api/useUser";
 import { useSignOut } from "@/api/auth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { nanoid } from "nanoid";
 
 const languages = [
   { name: "JavaScript", logo: "/logos/js.png" },
@@ -33,8 +34,46 @@ const UserSelection = () => {
   const { data, isLoading } = useUser();
   const signOutMutation = useSignOut();
 
+  const navigate = useNavigate();
+  const newRoomId = nanoid();
+
   if (isLoading) return <div>Loading...</div>;
   if (!data) return <Navigate to="/" replace />;
+
+  const handleCreateRoom = () => {
+    setRoomId(newRoomId);
+    setStep("language");
+  };
+
+  const getUrlLanguage = (language: string) => {
+    return language
+      .toLowerCase()
+      .replace(/\+/g, "p")
+      .replace(/\//g, "-")
+      .replace(/\s/g, "-");
+  };
+
+  const handleStartCoding = () => {
+    const params = new URLSearchParams();
+
+    if (!selectedLanguage) return;
+
+    let languageForUrl = getUrlLanguage(selectedLanguage);
+
+    if (selectedLanguage) {
+      params.append("language", languageForUrl.toLowerCase().replace("/", "-"));
+    }
+
+    if (selectedMode) {
+      params.append("mode", selectedMode);
+    }
+
+    if (selectedMode === "friends" && roomId) {
+      params.append("roomid", roomId);
+    }
+
+    navigate(`/editor?${params.toString()}`);
+  };
 
   return (
     <div className="pt-10 px-6">
@@ -120,7 +159,7 @@ const UserSelection = () => {
                 </p>
                 <Button
                   className="bg-main text-black font-semibold hover:bg-main/80 px-6 mt-4 cursor-pointer"
-                  onClick={() => setStep("language")}
+                  onClick={handleCreateRoom}
                 >
                   <PlusCircle />
                   Create Room
@@ -210,13 +249,7 @@ const UserSelection = () => {
                   selectedLanguage ? "cursor-pointer" : "cursor-not-allowed"
                 }`}
                 disabled={!selectedLanguage}
-                onClick={() =>
-                  console.log(
-                    "Start coding with:",
-                    selectedMode,
-                    selectedLanguage
-                  )
-                }
+                onClick={handleStartCoding}
               >
                 <CodeXml />
                 Start Coding
