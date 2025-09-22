@@ -20,7 +20,10 @@ const languages = [
   { name: "Python", logo: "/logos/python.webp" },
   { name: "C++", logo: "/logos/cpp.png" },
   { name: "Java", logo: "/logos/java.svg" },
+  { name: "TypeScript", logo: "/logos/ts.webp" },
   { name: "HTML/CSS/JS", logo: "/logos/web.png" },
+  { name: "C#", logo: "/logos/csharp.avif" },
+  { name: "PHP", logo: "/logos/php.png" },
 ];
 
 const UserSelection = () => {
@@ -49,6 +52,7 @@ const UserSelection = () => {
     return language
       .toLowerCase()
       .replace(/\+/g, "p")
+      .replace(/\#/g, "sharp")
       .replace(/\//g, "-")
       .replace(/\s/g, "-");
   };
@@ -207,7 +211,7 @@ const UserSelection = () => {
         {step === "language" && (
           <div className="flex flex-col items-center justify-center py-6 mt-6 w-full max-w-5xl">
             <h1 className="text-4xl font-bold mb-10">Select Your Language</h1>
-            <div className="grid md:grid-cols-3 gap-8 w-full">
+            <div className="grid max-[1000px]:grid-cols-2 max-[600px]:grid-cols-1 grid-cols-4 gap-8 w-full">
               {languages.map((lang) => {
                 const isSelected = selectedLanguage === lang.name;
                 return (

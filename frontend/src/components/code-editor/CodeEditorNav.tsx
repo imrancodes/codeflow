@@ -1,10 +1,11 @@
 import { Button } from "../ui/button";
 import { Save, Copy, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
+import type { Mode } from "./CodeEditor";
 
 interface CodeEditorNavProps {
   roomId: string | null;
-  mode: string | null;
+  mode: Mode;
 }
 
 const CodeEditorNav = ({ roomId, mode }: CodeEditorNavProps) => {
@@ -17,7 +18,7 @@ const CodeEditorNav = ({ roomId, mode }: CodeEditorNavProps) => {
       <div className="flex items-center gap-50">
         <div className="flex items-center">
           <img src="/logo.png" alt="Logo" className="size-15" />
-          <h1 className="-m-3">CodeFlow</h1>
+          <h1 className="-m-3 font-code">CodeFlow</h1>
         </div>
         {mode === "friends" ? (
           <div className="flex items-center gap-4">
