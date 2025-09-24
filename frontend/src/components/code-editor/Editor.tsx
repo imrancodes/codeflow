@@ -1,6 +1,14 @@
 import MonacoEditor from "@monaco-editor/react";
+import { starterCode } from "./starterCode";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { useExecuteCode } from "@/api/execution";
+import CodeExecution from "./CodeExecution";
 
 const Editor = ({ language }: { language: string }) => {
+  const [value, setValue] = useState(starterCode[language] || "");
+  const { mutate, data, isLoading, error } = useExecuteCode();
+
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme("githubDark", {
       base: "vs-dark",
@@ -24,15 +32,24 @@ const Editor = ({ language }: { language: string }) => {
     });
   };
 
+  // const runCode = () => {
+  //   mutate({
+  //     id: 102,
+  //     sourceCode: value,
+  //     input: "",
+  //   });
+  // };
+
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="flex-1">
+    <div className="flex flex-1">
+      <div className="flex-1 min-w-0 mr-0.5">
         <MonacoEditor
           height="100%"
-          width="60vw"
-          defaultLanguage={language}
+          language={language}
           theme="githubDark"
+          value={value}
           beforeMount={handleEditorWillMount}
+          onChange={(val) => setValue(val ?? "")}
           options={{
             minimap: { enabled: true },
             fontSize: 14,
@@ -45,6 +62,9 @@ const Editor = ({ language }: { language: string }) => {
             fontLigatures: true,
           }}
         />
+      </div>
+      <div className="flex-shrink-0 w-1/3 min-w-[250px] bg-[#161921] p-2">
+        <CodeExecution />
       </div>
     </div>
   );

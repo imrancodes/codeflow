@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { File, Users, Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Mode } from "./CodeEditor";
@@ -15,10 +15,6 @@ const SideBar = ({ mode }: { mode: Mode }) => {
       setIsActive(value);
     }
   };
-
-  useEffect(() => {
-    console.log(isActive);
-  }, [isActive]);
 
   return (
     <>
@@ -61,11 +57,11 @@ const SideBar = ({ mode }: { mode: Mode }) => {
           </Button>
         </div>
       </div>
-      <div
-        className={`mr-0.5 ${
-          isActive !== null ? "block" : "hidden"
-        } w-90 bg-[#161921]`}
-      ></div>
+      {isActive && (
+        <div className="w-90 bg-[#161921] mr-0.5">
+
+        </div>
+      )}
     </>
   );
 };

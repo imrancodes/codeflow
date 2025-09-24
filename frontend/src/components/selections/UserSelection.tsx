@@ -49,6 +49,14 @@ const UserSelection = () => {
   };
 
   const getUrlLanguage = (language: string) => {
+    const map: Record<string, string> = {
+      "HTML/CSS/JS": "html",
+      "C++": "cpp",
+      "C#": "csharp",
+    };
+
+    if (map[language]) return map[language];
+
     return language
       .toLowerCase()
       .replace(/\+/g, "p")
