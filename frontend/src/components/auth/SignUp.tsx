@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useUser } from "@/api/useUser";
+import Loader from "../ui/loader";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const SignUp = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser),
-        credentials: "include"
+        credentials: "include",
       }
     );
 
@@ -50,7 +51,6 @@ const SignUp = () => {
     return data;
   };
 
-  
   const {
     register,
     handleSubmit,
@@ -64,20 +64,25 @@ const SignUp = () => {
       toast.success("SignUp successfully!");
       queryClient.invalidateQueries({ queryKey: ["user"] });
       reset();
-      navigate('/')
+      navigate("/");
     },
     onError: (err) => {
       toast.error(err.message || "Something went wrong!");
     },
   });
-  
+
   const handleFormSubmit = (data: FormData) => {
-    signUpMutation.mutate(data)
+    signUpMutation.mutate(data);
   };
 
   const { data, isLoading } = useUser();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading)
+    return (
+      <div>
+        <Loader className="mt-96 size-20 fill-main" />
+      </div>
+    );
 
   if (data) return <Navigate to="/" replace />;
 
@@ -85,7 +90,9 @@ const SignUp = () => {
     <div className="flex h-screen w-screen items-center justify-center flex-col">
       <div className="flex items-center gap-3 mr-4">
         <img src="/logo.png" alt="Logo" className="size-20" />
-        <h1 className="text-2xl font-bold text-white -ml-8 font-code">CodeFlow</h1>
+        <h1 className="text-2xl font-bold text-white -ml-8 font-code">
+          CodeFlow
+        </h1>
       </div>
       <div className="flex flex-col items-center gap-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/20 p-8 shadow-lg w-[380px]">
         {/* Heading */}
@@ -162,7 +169,14 @@ const SignUp = () => {
             className="mt-3 bg-main text-black font-semibold hover:bg-main/80 cursor-pointer"
             disabled={signUpMutation.isPending}
           >
-            {signUpMutation.isPending ? "Signing Up..." : "Sign Up"}
+            {signUpMutation.isPending ? (
+              <>
+                <Loader className="fill-black" />
+                Signing Up
+              </>
+            ) : (
+              "Sign Up"
+            )}
           </Button>
         </form>
 

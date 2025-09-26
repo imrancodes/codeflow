@@ -14,6 +14,7 @@ import { useUser } from "@/api/useUser";
 import { useSignOut } from "@/api/auth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { nanoid } from "nanoid";
+import Loader from "../ui/loader";
 
 const languages = [
   { name: "JavaScript", logo: "/logos/js.png" },
@@ -40,7 +41,7 @@ const UserSelection = () => {
   const navigate = useNavigate();
   const newRoomId = nanoid();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div><Loader className="fill-main mt-96 size-20"/></div>;
   if (!data) return <Navigate to="/" replace />;
 
   const handleCreateRoom = () => {

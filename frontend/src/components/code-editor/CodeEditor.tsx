@@ -19,7 +19,7 @@ const CodeEditor = () => {
     <div className="bg-black h-screen flex flex-col">
       <CodeEditorNav roomId={roomId} mode={mode} />
       <div className="bg-black h-[2px]" />
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0">
         <SideBar mode={mode} />
         <Editor language={language} />
       </div>

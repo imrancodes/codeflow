@@ -13,7 +13,7 @@ const runCode = async ({ id, sourceCode, input }: RunCodeProp) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-rapidapi-key": "86b1ed7eb9msh43555f05cd00280p1a12c6jsneae964e1f803",
+        "x-rapidapi-key": import.meta.env.VITE_EXECUTION_API_KEY,
         "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
       },
       body: JSON.stringify({

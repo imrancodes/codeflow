@@ -1,13 +1,11 @@
 import MonacoEditor from "@monaco-editor/react";
 import { starterCode } from "./starterCode";
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { useExecuteCode } from "@/api/execution";
 import CodeExecution from "./CodeExecution";
+import Loader from "../ui/loader";
 
 const Editor = ({ language }: { language: string }) => {
   const [value, setValue] = useState(starterCode[language] || "");
-  const { mutate, data, isLoading, error } = useExecuteCode();
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme("githubDark", {
@@ -32,14 +30,6 @@ const Editor = ({ language }: { language: string }) => {
     });
   };
 
-  // const runCode = () => {
-  //   mutate({
-  //     id: 102,
-  //     sourceCode: value,
-  //     input: "",
-  //   });
-  // };
-
   return (
     <div className="flex flex-1">
       <div className="flex-1 min-w-0 mr-0.5">
@@ -61,10 +51,11 @@ const Editor = ({ language }: { language: string }) => {
               "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
             fontLigatures: true,
           }}
+          loading={<Loader className="fill-main size-14"/>}
         />
       </div>
-      <div className="flex-shrink-0 w-1/3 min-w-[250px] bg-[#161921] p-2">
-        <CodeExecution />
+      <div className="flex flex-col flex-shrink-0 w-1/3 min-w-[250px] bg-[#161921] p-2 h-full min-h-0">
+        <CodeExecution code={value} language={language} />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import { Link, useNavigate } from "react-router-dom";
+import Loader from "../ui/loader";
 
 interface User {
   id: string;
@@ -28,13 +29,15 @@ const Navbar = ({ data, signOutMutation, isLoading }: NavbarProps) => {
 
   return (
     <nav className="flex justify-between items-center rounded-xl bg-white/5 backdrop-blur-md border border-white/20 shadow-lg max-w-6xl mx-auto pr-4">
-      <Link to={'/'} className="flex justify-center items-center">
+      <Link to={"/"} className="flex justify-center items-center">
         <img src="/logo.png" alt="Logo" className="size-20" />
         <h1 className="text-2xl -ml-4 font-code">CodeFlow</h1>
       </Link>
 
       {isLoading ? (
-        <div className="text-gray-300">Loading...</div>
+        <div className="text-gray-300">
+          <Loader className="fill-main" />
+        </div>
       ) : data?.user ? (
         <div>
           <Button

@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useUser } from "@/api/useUser";
+import Loader from "../ui/loader";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const SignIn = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
-        credentials: "include"
+        credentials: "include",
       }
     );
     const data = await res.json();
@@ -70,7 +71,12 @@ const SignIn = () => {
 
   const { data, isLoading } = useUser();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading)
+    return (
+      <div>
+        <Loader className="mt-96 size-20 fill-main" />
+      </div>
+    );
 
   if (data) return <Navigate to="/" replace />;
 
@@ -79,7 +85,9 @@ const SignIn = () => {
       {/* Logo + Brand */}
       <div className="flex items-center gap-3 mr-4">
         <img src="/logo.png" alt="Logo" className="size-20" />
-        <h1 className="text-2xl font-bold text-white -ml-8 font-code">CodeFlow</h1>
+        <h1 className="text-2xl font-bold text-white -ml-8 font-code">
+          CodeFlow
+        </h1>
       </div>
 
       {/* Form Block */}
@@ -138,7 +146,14 @@ const SignIn = () => {
             className="mt-3 bg-main text-black font-semibold hover:bg-main/80 cursor-pointer"
             disabled={loginMutation.isPending}
           >
-            {loginMutation.isPending ? "Sign In..." : "Sign In"}
+            {loginMutation.isPending ? (
+              <>
+                <Loader className="fill-black" />
+                Signing In
+              </>
+            ) : (
+              "Sign In"
+            )}
           </Button>
         </form>
 
