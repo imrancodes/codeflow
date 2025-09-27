@@ -7,8 +7,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { data, isLoading, error } = useUser();
 
   if (isLoading) return <div><Loader/></div>;
-  if (error) return <Navigate to="/login" replace />;
-  if (!data) return <Navigate to="/login" replace />;
+  if (error) return <Navigate to="/signin" replace />;
+  if (!data) return <Navigate to="/signin" replace />;
 
   return <>{children}</>;
 };

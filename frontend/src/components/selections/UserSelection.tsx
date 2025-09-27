@@ -15,6 +15,8 @@ import { useSignOut } from "@/api/auth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { nanoid } from "nanoid";
 import Loader from "../ui/loader";
+import { createRoom, joinRoom } from "@/api/room";
+import toast from "react-hot-toast";
 
 const languages = [
   { name: "JavaScript", logo: "/logos/js.png" },
@@ -39,9 +41,17 @@ const UserSelection = () => {
   const signOutMutation = useSignOut();
 
   const navigate = useNavigate();
-  const newRoomId = nanoid();
+  const newRoomId = nanoid(12);
 
-  if (isLoading) return <div><Loader className="fill-main mt-96 size-20"/></div>;
+  const { mutate: createRoomMutate } = createRoom();
+  const { mutate: joinRoomMutate } = joinRoom();
+
+  if (isLoading)
+    return (
+      <div>
+        <Loader className="fill-main mt-96 size-20" />
+      </div>
+    );
   if (!data) return <Navigate to="/" replace />;
 
   const handleCreateRoom = () => {
@@ -85,7 +95,36 @@ const UserSelection = () => {
       params.append("roomid", roomId);
     }
 
+    if (selectedMode === "friends") {
+      createRoomMutate({
+        language: languageForUrl,
+        roomId: roomId,
+      });
+    } else {
+      toast.success("Your coding session is ready.");
+    }
+
     navigate(`/editor?${params.toString()}`);
+  };
+
+  const handleJoinRoom = () => {
+    joinRoomMutate(
+      {
+        roomId,
+      },
+      {
+        onSuccess: (data) => {
+          const language = data.result.language;
+          navigate(
+            `/editor?language=${language}&mode=friends&roomid=${roomId}`
+          );
+        },
+        onError: (error) => {
+          console.error("Failed to join room:", error);
+          toast.error("Failed to join room. Please check the Room ID.");
+        },
+      }
+    );
   };
 
   return (
@@ -199,7 +238,7 @@ const UserSelection = () => {
                   className={`bg-main text-black font-semibold hover:bg-main/80 px-6 mt-4 ${
                     roomId ? "cursor-pointer" : ""
                   }`}
-                  onClick={() => console.log("Join Room with ID:", roomId)}
+                  onClick={handleJoinRoom}
                   disabled={!roomId}
                 >
                   <LogIn />

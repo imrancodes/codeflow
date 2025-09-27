@@ -10,7 +10,12 @@ interface CodeEditorNavProps {
 
 const CodeEditorNav = ({ roomId, mode }: CodeEditorNavProps) => {
   const handlelinkCopy = () => {
-    toast.success("Copied");
+    if (roomId) {
+      navigator.clipboard.writeText(roomId);
+      toast.success("Copied");
+    } else {
+      toast.error("No room ID to copy");
+    }
   };
 
   return (

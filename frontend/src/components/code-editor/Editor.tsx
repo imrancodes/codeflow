@@ -1,11 +1,35 @@
 import MonacoEditor from "@monaco-editor/react";
 import { starterCode } from "./starterCode";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CodeExecution from "./CodeExecution";
 import Loader from "../ui/loader";
+import HtmlCodeExecution from "./HtmlCodeExecution";
+import { socket } from "./socket/socket";
 
-const Editor = ({ language }: { language: string }) => {
-  const [value, setValue] = useState(starterCode[language] || "");
+interface EditorProps {
+  language: string;
+  roomId: string | null;
+}
+
+const Editor = ({ language, roomId }: EditorProps) => {
+  const [sharedCode, setSharedCode] = useState(starterCode[language] || "");
+  socket.emit("joinRoom", roomId);
+
+  const handleCode = (newValue: string | undefined) => {
+    const valueToSet = newValue ?? "";
+    setSharedCode(valueToSet);
+    socket.emit("codeSync", roomId, valueToSet);
+  };
+
+  useEffect(() => {
+    socket.on("updateCode", (code) => {
+      setSharedCode(code);
+    });
+
+    return () => {
+      socket.off("updateCode");
+    };
+  });
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme("githubDark", {
@@ -37,9 +61,9 @@ const Editor = ({ language }: { language: string }) => {
           height="100%"
           language={language}
           theme="githubDark"
-          value={value}
+          value={sharedCode}
           beforeMount={handleEditorWillMount}
-          onChange={(val) => setValue(val ?? "")}
+          onChange={handleCode}
           options={{
             minimap: { enabled: true },
             fontSize: 14,
@@ -51,11 +75,23 @@ const Editor = ({ language }: { language: string }) => {
               "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
             fontLigatures: true,
           }}
-          loading={<Loader className="fill-main size-14"/>}
+          loading={<Loader className="fill-main size-14" />}
         />
       </div>
-      <div className="flex flex-col flex-shrink-0 w-1/3 min-w-[250px] bg-[#161921] p-2 h-full min-h-0">
-        <CodeExecution code={value} language={language} />
+      <div
+        className={`flex flex-col flex-shrink-0 w-1/3 min-w-[250px] bg-[#161921] ${
+          language === "html" ? "p-0" : "p-2"
+        } h-full min-h-0`}
+      >
+        {language === "html" ? (
+          <HtmlCodeExecution code={sharedCode} />
+        ) : (
+          <CodeExecution
+            code={sharedCode}
+            language={language}
+            roomId={roomId}
+          />
+        )}
       </div>
     </div>
   );

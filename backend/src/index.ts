@@ -4,11 +4,54 @@ import dotenv from "dotenv";
 import dbConnection from "./connection";
 import userRoute from "./routes/user";
 import cookieParser from "cookie-parser";
+import { createServer } from "node:http";
+import { Server } from "socket.io";
+import roomRoute from "./routes/room";
 
 dotenv.config();
 
 const app = express();
+const server = createServer(app);
 const mongoUrl = process.env.DATABASE_URL;
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+  });
+
+  socket.on("codeSync", (roomId, code) => {
+    socket.to(roomId).emit("updateCode", code);
+  });
+
+  socket.on("inputSync", (roomId, input) => {
+    socket.to(roomId).emit("updateInput", input);
+  });
+
+  socket.on("outputSync", (roomId, output) => {
+    socket.to(roomId).emit("updateOutput", output);
+  });
+
+  socket.on("errorSync", (roomId, error) => {
+    socket.to(roomId).emit("updateError", error);
+  });
+  socket.on("isPendingSync", (roomId, pending) => {
+    socket.to(roomId).emit("updateIsPending", pending);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
 
 app.use(
   cors({
@@ -19,6 +62,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/auth", userRoute);
+app.use("/api/room", roomRoute);
 
 if (!mongoUrl) {
   throw new Error("DATABASE_URL is not defined in .env");
@@ -32,6 +76,6 @@ dbConnection(mongoUrl)
     console.log(err);
   });
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });

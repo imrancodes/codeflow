@@ -58,11 +58,11 @@ class Program {
       text-align: center;
       padding: 50px;
     }
-    h1 { color: #00ffc3; }
+    h1 { color: black; }
   </style>
 </head>
 <body>
-  <h1>Hello, World!</h1>
+  <h1>This is a simple HTML + CSS + JS template!</h1>
   <script>
     console.log("Hello from JavaScript!");
   </script>
