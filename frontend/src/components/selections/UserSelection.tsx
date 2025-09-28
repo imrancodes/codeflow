@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   CheckCircle,
@@ -113,8 +113,8 @@ const UserSelection = () => {
         roomId,
       },
       {
-        onSuccess: (data) => {
-          const language = data.result.language;
+        onSuccess: (roomData) => {
+          const language = roomData.result.language;
           navigate(
             `/editor?language=${language}&mode=friends&roomid=${roomId}`
           );

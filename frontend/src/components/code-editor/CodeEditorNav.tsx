@@ -2,6 +2,10 @@ import { Button } from "../ui/button";
 import { Save, Copy, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 import type { Mode } from "./CodeEditor";
+import { socket } from "./socket/socket";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useUser } from "@/api/useUser";
 
 interface CodeEditorNavProps {
   roomId: string | null;
@@ -9,6 +13,9 @@ interface CodeEditorNavProps {
 }
 
 const CodeEditorNav = ({ roomId, mode }: CodeEditorNavProps) => {
+  const { data } = useUser();
+  const navigate = useNavigate();
+
   const handlelinkCopy = () => {
     if (roomId) {
       navigator.clipboard.writeText(roomId);
@@ -17,6 +24,31 @@ const CodeEditorNav = ({ roomId, mode }: CodeEditorNavProps) => {
       toast.error("No room ID to copy");
     }
   };
+
+  const handleLeaveRoom = () => {
+    socket.emit("leaveRoom", roomId, data.user.name);
+    toast.success("You left the room");
+    navigate("/");
+  };
+
+  useEffect(() => {
+    socket.on("userLeave", (message) => {
+      toast(message, {
+        position: "bottom-center",
+      });
+    });
+
+    socket.on("userJoined", (message) => {
+      toast(message, {
+        position: "bottom-center",
+      });
+    });
+
+    return () => {
+      socket.off("userLeave");
+      socket.off("userJoined");
+    };
+  }, []);
 
   return (
     <nav className="flex justify-between items-center pr-4 bg-[#101218]">
@@ -40,6 +72,7 @@ const CodeEditorNav = ({ roomId, mode }: CodeEditorNavProps) => {
             <Button
               title="Leave"
               className="bg-transparent hover:bg-gray-800 cursor-pointer border-white/20 border"
+              onClick={handleLeaveRoom}
             >
               <LogOut />
               Leave

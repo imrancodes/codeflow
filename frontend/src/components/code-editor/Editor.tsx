@@ -5,6 +5,7 @@ import CodeExecution from "./CodeExecution";
 import Loader from "../ui/loader";
 import HtmlCodeExecution from "./HtmlCodeExecution";
 import { socket } from "./socket/socket";
+import { useUser } from "@/api/useUser";
 
 interface EditorProps {
   language: string;
@@ -13,7 +14,7 @@ interface EditorProps {
 
 const Editor = ({ language, roomId }: EditorProps) => {
   const [sharedCode, setSharedCode] = useState(starterCode[language] || "");
-  socket.emit("joinRoom", roomId);
+  const { data } = useUser();
 
   const handleCode = (newValue: string | undefined) => {
     const valueToSet = newValue ?? "";
@@ -22,6 +23,8 @@ const Editor = ({ language, roomId }: EditorProps) => {
   };
 
   useEffect(() => {
+    socket.emit("joinRoom", roomId, data.user.name);
+
     socket.on("updateCode", (code) => {
       setSharedCode(code);
     });
@@ -29,7 +32,7 @@ const Editor = ({ language, roomId }: EditorProps) => {
     return () => {
       socket.off("updateCode");
     };
-  });
+  }, [roomId, data.user.name]);
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme("githubDark", {
@@ -75,7 +78,7 @@ const Editor = ({ language, roomId }: EditorProps) => {
               "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
             fontLigatures: true,
           }}
-          loading={<Loader className="fill-main size-14" />}
+          loading={<Loader className="fill-main size-14"/>}
         />
       </div>
       <div

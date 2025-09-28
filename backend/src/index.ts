@@ -22,14 +22,23 @@ const io = new Server(server, {
   },
 });
 
+const latestCode: Record<string, string> = {};
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("joinRoom", (roomId) => {
+  socket.on("joinRoom", (roomId, userName) => {
     socket.join(roomId);
+
+    socket.to(roomId).emit("userJoined", `${userName} joined the code room`);
+
+    if (latestCode[roomId]) {
+      socket.emit("updateCode", latestCode[roomId]);
+    }
   });
 
   socket.on("codeSync", (roomId, code) => {
+    latestCode[roomId] = code;
     socket.to(roomId).emit("updateCode", code);
   });
 
@@ -46,6 +55,12 @@ io.on("connection", (socket) => {
   });
   socket.on("isPendingSync", (roomId, pending) => {
     socket.to(roomId).emit("updateIsPending", pending);
+  });
+
+  socket.on("leaveRoom", (roomId, userName) => {
+    socket.leave(roomId);
+
+    socket.to(roomId).emit("userLeave", `${userName} leave the code room`);
   });
 
   socket.on("disconnect", () => {
