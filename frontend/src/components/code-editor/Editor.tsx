@@ -1,6 +1,5 @@
 import MonacoEditor from "@monaco-editor/react";
-import { starterCode } from "./starterCode";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import CodeExecution from "./CodeExecution";
 import Loader from "../ui/loader";
 import HtmlCodeExecution from "./HtmlCodeExecution";
@@ -10,10 +9,16 @@ import { useUser } from "@/api/useUser";
 interface EditorProps {
   language: string;
   roomId: string | null;
+  code: string,
+  setCode: (code: string) => void
 }
 
-const Editor = ({ language, roomId }: EditorProps) => {
-  const [sharedCode, setSharedCode] = useState(starterCode[language] || "");
+const Editor = ({
+  language,
+  roomId,
+  code: sharedCode,
+  setCode: setSharedCode,
+}: EditorProps) => {
   const { data } = useUser();
 
   const handleCode = (newValue: string | undefined) => {
@@ -78,7 +83,7 @@ const Editor = ({ language, roomId }: EditorProps) => {
               "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
             fontLigatures: true,
           }}
-          loading={<Loader className="fill-main size-14"/>}
+          loading={<Loader className="fill-main size-14" />}
         />
       </div>
       <div

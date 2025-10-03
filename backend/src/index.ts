@@ -27,7 +27,6 @@ const latestCode: Record<string, string> = {};
 const roomParticipants: Record<string, { id: string; name: string }[]> = {};
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
 
   socket.on("joinRoom", (roomId, userName) => {
     socket.join(roomId);
@@ -82,7 +81,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
 
     for (const roomId in roomParticipants) {
       const before = roomParticipants[roomId].length;

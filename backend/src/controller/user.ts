@@ -44,7 +44,6 @@ export const handleSignUp = async (req: Request, res: Response) => {
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
     });
-    console.log(token);
 
     res.status(201).json({ msg: "User Created Sucessfully", user });
   } catch (err) {

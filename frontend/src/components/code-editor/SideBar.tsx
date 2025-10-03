@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { File, Users, Sparkles } from "lucide-react";
+import { Users, Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Mode } from "./CodeEditor";
-import Explorer from "./sidebar/Explorer";
 import Participants from "./sidebar/Participants";
 import Ai from "./sidebar/Ai";
 import { socket } from "./socket/socket";
@@ -12,12 +11,18 @@ export interface Participant {
   name: string;
 }
 
+export interface Message {
+  role: "user" | "ai";
+  text: string;
+}
 
-type SideBarButtons = "explorer" | "participants" | "ai";
+
+type SideBarButtons = "participants" | "ai";
 
 const SideBar = ({ mode }: { mode: Mode }) => {
   const [isActive, setIsActive] = useState<SideBarButtons | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [aiMessages, setAiMessages] = useState<Message[]>([]);
 
   const handleSideBarActivation = (value: SideBarButtons) => {
     if (isActive === value) {
@@ -42,17 +47,6 @@ const SideBar = ({ mode }: { mode: Mode }) => {
     <>
       <div className="w-[55px] bg-[#161921] mr-0.5">
         <div>
-          <Button
-            title="Explorer"
-            className={`cursor-pointer w-full rounded-none bg-transparent py-6 ${
-              isActive === "explorer"
-                ? "bg-[#0d282e] hover:bg-[#0d282e] border-l-2 border-main"
-                : "bg-transparent hover:text-main"
-            }`}
-            onClick={() => handleSideBarActivation("explorer")}
-          >
-            <File className="size-6" />
-          </Button>
           {mode === "friends" ? (
             <Button
               title="Participants"
@@ -83,10 +77,8 @@ const SideBar = ({ mode }: { mode: Mode }) => {
         <div className="w-90 bg-[#161921] mr-0.5 overflow-hidden">
           {isActive === "participants" ? (
             <Participants participants={participants} />
-          ) : isActive === "explorer" ? (
-            <Explorer />
           ) : isActive === "ai" ? (
-            <Ai />
+            <Ai messages={aiMessages} setMessages={setAiMessages} />
           ) : null}
         </div>
       )}
