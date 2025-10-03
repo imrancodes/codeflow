@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import roomRoute from "./routes/room";
+import aiRoute from "./routes/ai";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ const io = new Server(server, {
 });
 
 const latestCode: Record<string, string> = {};
+const roomParticipants: Record<string, { id: string; name: string }[]> = {};
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
@@ -30,11 +32,19 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", (roomId, userName) => {
     socket.join(roomId);
 
+    if (!roomParticipants[roomId]) {
+      roomParticipants[roomId] = [];
+    }
+
+    roomParticipants[roomId].push({ id: socket.id, name: userName });
+
     socket.to(roomId).emit("userJoined", `${userName} joined the code room`);
 
     if (latestCode[roomId]) {
       socket.emit("updateCode", latestCode[roomId]);
     }
+
+    io.to(roomId).emit("participantsUpdate", roomParticipants[roomId]);
   });
 
   socket.on("codeSync", (roomId, code) => {
@@ -59,12 +69,34 @@ io.on("connection", (socket) => {
 
   socket.on("leaveRoom", (roomId, userName) => {
     socket.leave(roomId);
+    
+    if (roomParticipants[roomId]) {
+      roomParticipants[roomId] = roomParticipants[roomId].filter(
+        (u) => u.id !== socket.id
+      );
+      
+      socket.to(roomId).emit("userLeave", `${userName} leave the code room`);
+      io.to(roomId).emit("participantsUpdate", roomParticipants[roomId]);
 
-    socket.to(roomId).emit("userLeave", `${userName} leave the code room`);
+    }
   });
 
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
+
+    for (const roomId in roomParticipants) {
+      const before = roomParticipants[roomId].length;
+
+      roomParticipants[roomId] = roomParticipants[roomId].filter(
+        (u) => u.id !== socket.id
+      );
+
+      const after = roomParticipants[roomId].length;
+
+      if (before !== after) {
+        io.to(roomId).emit("participantsUpdate", roomParticipants[roomId]);
+      }
+    }
   });
 });
 
@@ -78,6 +110,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/api/auth", userRoute);
 app.use("/api/room", roomRoute);
+app.use("/api/ai", aiRoute);
 
 if (!mongoUrl) {
   throw new Error("DATABASE_URL is not defined in .env");

@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { File, Users, Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Mode } from "./CodeEditor";
+import Explorer from "./sidebar/Explorer";
+import Participants from "./sidebar/Participants";
+import Ai from "./sidebar/Ai";
+import { socket } from "./socket/socket";
+
+export interface Participant {
+  id: string;
+  name: string;
+}
+
 
 type SideBarButtons = "explorer" | "participants" | "ai";
 
 const SideBar = ({ mode }: { mode: Mode }) => {
   const [isActive, setIsActive] = useState<SideBarButtons | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
 
   const handleSideBarActivation = (value: SideBarButtons) => {
     if (isActive === value) {
@@ -15,6 +26,17 @@ const SideBar = ({ mode }: { mode: Mode }) => {
       setIsActive(value);
     }
   };
+
+
+  useEffect(() => {
+    socket.on("participantsUpdate", (list: Participant[]) => {
+      setParticipants(list);
+    });
+
+    return () => {
+      socket.off("participantsUpdate");
+    };
+  }, []);
 
   return (
     <>
@@ -58,8 +80,14 @@ const SideBar = ({ mode }: { mode: Mode }) => {
         </div>
       </div>
       {isActive && (
-        <div className="w-90 bg-[#161921] mr-0.5">
-
+        <div className="w-90 bg-[#161921] mr-0.5 overflow-hidden">
+          {isActive === "participants" ? (
+            <Participants participants={participants} />
+          ) : isActive === "explorer" ? (
+            <Explorer />
+          ) : isActive === "ai" ? (
+            <Ai />
+          ) : null}
         </div>
       )}
     </>
