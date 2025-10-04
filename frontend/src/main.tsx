@@ -1,21 +1,21 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.tsx";
+import App from "./App";
 import {
   createBrowserRouter,
   createRoutesFromElements,
   Route,
   RouterProvider,
 } from "react-router-dom";
-import SignIn from "./components/auth/SignIn.tsx";
-import SignUp from "./components/auth/SignUp.tsx";
-import AuthLayout from "./components/auth/AuthLayout.tsx";
+import SignIn from "./components/auth/SignIn";
+import SignUp from "./components/auth/SignUp";
+import AuthLayout from "./components/auth/AuthLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
-import HomeLayout from "./components/home/HomeLayout.tsx";
-import UserSelection from "./components/selections/UserSelection.tsx";
-import CodeEditor from "./components/code-editor/CodeEditor.tsx";
+import HomeLayout from "./components/home/HomeLayout";
+import UserSelection from "./components/selections/UserSelection";
+import CodeEditor from "./components/code-editor/CodeEditor";
 
 const client = new QueryClient();
 
