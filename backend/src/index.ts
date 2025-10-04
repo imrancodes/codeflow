@@ -8,12 +8,15 @@ import { createServer } from "node:http";
 import { Server } from "socket.io";
 import roomRoute from "./routes/room";
 import aiRoute from "./routes/ai";
+import path from "node:path";
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
 const mongoUrl = process.env.DATABASE_URL;
+
+const _dirname = path.resolve();
 
 const io = new Server(server, {
   cors: {
@@ -27,7 +30,6 @@ const latestCode: Record<string, string> = {};
 const roomParticipants: Record<string, { id: string; name: string }[]> = {};
 
 io.on("connection", (socket) => {
-
   socket.on("joinRoom", (roomId, userName) => {
     socket.join(roomId);
 
@@ -68,20 +70,18 @@ io.on("connection", (socket) => {
 
   socket.on("leaveRoom", (roomId, userName) => {
     socket.leave(roomId);
-    
+
     if (roomParticipants[roomId]) {
       roomParticipants[roomId] = roomParticipants[roomId].filter(
         (u) => u.id !== socket.id
       );
-      
+
       socket.to(roomId).emit("userLeave", `${userName} leave the code room`);
       io.to(roomId).emit("participantsUpdate", roomParticipants[roomId]);
-
     }
   });
 
   socket.on("disconnect", () => {
-
     for (const roomId in roomParticipants) {
       const before = roomParticipants[roomId].length;
 
@@ -121,6 +121,11 @@ dbConnection(mongoUrl)
   .catch((err) => {
     console.log(err);
   });
+
+app.use(express.static(path.join(_dirname, 'frontend/dist')));
+app.use((_, res) => {
+  res.sendFile(path.join(_dirname, 'frontend/dist/index.html'));
+});
 
 server.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
