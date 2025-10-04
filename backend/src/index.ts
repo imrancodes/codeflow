@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import dbConnection from "./connection";
-import userRoute from "./routes/user";
+import dbConnection from "./connection.js";
+import userRoute from "./routes/user.js";
 import cookieParser from "cookie-parser";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
-import roomRoute from "./routes/room";
-import aiRoute from "./routes/ai";
+import roomRoute from "./routes/room.js";
+import aiRoute from "./routes/ai.js";
 import path from "node:path";
 
 dotenv.config();

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Room from "../model/room";
+import Room from "../model/room.js";
 
 export const handleCreateRoom = async (req: Request, res: Response) => {
   try {

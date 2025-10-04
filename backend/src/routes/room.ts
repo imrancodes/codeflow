@@ -1,5 +1,5 @@
     import express from "express";
-    import { handleCreateRoom, handleJoinRoom } from "../controller/room";
+    import { handleCreateRoom, handleJoinRoom } from "../controller/room.js";
 
     const roomRoute = express.Router();
 
