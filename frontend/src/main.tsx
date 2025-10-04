@@ -13,7 +13,7 @@ import SignUp from "./components/auth/SignUp";
 import AuthLayout from "./components/auth/AuthLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
-import HomeLayout from "./components/home/HomeLayout";
+import HomeLayout from "@/components/home/HomeLayout";
 import UserSelection from "./components/selections/UserSelection";
 import CodeEditor from "./components/code-editor/CodeEditor";
 

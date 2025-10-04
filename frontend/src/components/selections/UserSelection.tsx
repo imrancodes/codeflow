@@ -9,7 +9,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Navbar from "../../components/home/Navbar";
+import Navbar from "@/components/home/Navbar";
 import { useUser } from "@/api/useUser";
 import { useSignOut } from "@/api/auth";
 import { Navigate, useNavigate } from "react-router-dom";
