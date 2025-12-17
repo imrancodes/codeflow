@@ -157,6 +157,15 @@ const SignIn = () => {
           </Button>
         </form>
 
+        {/* Try Demo Account */}
+        <Button className="w-full bg-transparent border border-white hover:bg-white hover:text-black cursor-pointer" 
+        onClick={()=> {
+          loginMutation.mutate({email: 'test@test.com', password: 'test123456'})
+        }}
+        >
+          Try Demo Account
+        </Button>
+
         {/* Footer */}
         <p className="text-sm text-gray-400">
           Don’t have an account?{" "}
