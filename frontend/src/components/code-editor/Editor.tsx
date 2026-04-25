@@ -1,10 +1,11 @@
 import MonacoEditor from "@monaco-editor/react";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import CodeExecution from "./CodeExecution";
 import Loader from "../ui/loader";
 import HtmlCodeExecution from "./HtmlCodeExecution";
 import { socket } from "./socket/socket";
 import { useUser } from "@/api/useUser";
+import { fetchInlineCompletion } from "@/api/ai";
 
 interface EditorProps {
   language: string;
@@ -20,6 +21,13 @@ const Editor = ({
   setCode: setSharedCode,
 }: EditorProps) => {
   const { data } = useUser();
+  const providerDisposeRef = useRef<null | (() => void)>(null);
+  const inFlightAbortRef = useRef<AbortController | null>(null);
+  const requestSeqRef = useRef(0);
+  const lastRequestAtRef = useRef(0);
+  const cacheRef = useRef<Map<string, { value: string; at: number }>>(
+    new Map()
+  );
 
   const handleCode = (newValue: string | undefined) => {
     const valueToSet = newValue ?? "";
@@ -62,15 +70,176 @@ const Editor = ({
     });
   };
 
+  const normalizedLanguage = useMemo(() => {
+    // Monaco uses "javascript"/"typescript"/"python"/etc; keep as-is but map common aliases.
+    if (language === "js") return "javascript";
+    if (language === "ts") return "typescript";
+    return language;
+  }, [language]);
+
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    // Clean up old provider if language changes / remount happens.
+    if (providerDisposeRef.current) {
+      providerDisposeRef.current();
+      providerDisposeRef.current = null;
+    }
+
+    // Enable inline suggestions in Monaco.
+    try {
+      editor.updateOptions({
+        inlineSuggest: { enabled: true },
+        suggest: { preview: true },
+      });
+    } catch {
+      // ignore
+    }
+
+    // Tab to accept inline suggestion (Copilot-like).
+    // If no inline suggestion is active, Monaco will keep default behavior.
+    try {
+      editor.addCommand(monaco.KeyCode.Tab, () => {
+        editor.trigger("keyboard", "editor.action.inlineSuggest.commit", {});
+      });
+    } catch {
+      // ignore
+    }
+
+    const disposable = monaco.languages.registerInlineCompletionsProvider(
+      normalizedLanguage,
+      {
+        provideInlineCompletions: async (model: any, position: any, _context: any, token: any) => {
+          // If Monaco canceled, return nothing.
+          if (token?.isCancellationRequested) {
+            return { items: [], dispose: () => {} };
+          }
+
+          const fullText: string = model.getValue();
+          const offset: number = model.getOffsetAt(position);
+
+          // Limit context to keep latency/cost down.
+          const prefix = fullText.slice(Math.max(0, offset - 4000), offset);
+          const suffix = fullText.slice(offset, Math.min(fullText.length, offset + 1000));
+
+          // Avoid spamming calls for empty files / tiny context.
+          if (prefix.trim().length < 2) {
+            return { items: [], dispose: () => {} };
+          }
+
+          // Only suggest when cursor is at end of line or after whitespace.
+          const lineContent: string = model.getLineContent(position.lineNumber);
+          const isEol = position.column >= (lineContent.length + 1);
+          const prevChar = prefix.at(-1) ?? "";
+          if (!isEol && prevChar && !/\s|[({\[=,:;]/.test(prevChar)) {
+            return { items: [], dispose: () => {} };
+          }
+
+          // Debounce more aggressively (protect quota / cost).
+          await new Promise((r) => setTimeout(r, 700));
+          if (token?.isCancellationRequested) {
+            return { items: [], dispose: () => {} };
+          }
+
+          // Cooldown: never call more often than every 2 seconds.
+          const now = Date.now();
+          if (now - lastRequestAtRef.current < 2000) {
+            return { items: [], dispose: () => {} };
+          }
+
+          // Tiny cache: reuse completion for same context briefly.
+          const cacheKey = `${normalizedLanguage}::${prefix.slice(-1200)}::${suffix.slice(0, 200)}`;
+          const cached = cacheRef.current.get(cacheKey);
+          if (cached && now - cached.at < 20_000 && cached.value.trim()) {
+            const range = new monaco.Range(
+              position.lineNumber,
+              position.column,
+              position.lineNumber,
+              position.column
+            );
+            return {
+              items: [{ insertText: cached.value, range }],
+              dispose: () => {},
+            };
+          }
+
+          // Cancel previous request.
+          inFlightAbortRef.current?.abort();
+          const abort = new AbortController();
+          inFlightAbortRef.current = abort;
+
+          const mySeq = ++requestSeqRef.current;
+          lastRequestAtRef.current = now;
+
+          try {
+            const data = await fetchInlineCompletion(
+              {
+                language: normalizedLanguage,
+                prefix,
+                suffix,
+                maxTokens: 128,
+              },
+              abort.signal
+            );
+
+            // If a newer request happened, ignore this one.
+            if (mySeq !== requestSeqRef.current) {
+              return { items: [], dispose: () => {} };
+            }
+
+            const completion = (data?.completion ?? "").replace(/\r\n/g, "\n");
+            if (!completion.trim()) {
+              return { items: [], dispose: () => {} };
+            }
+
+            cacheRef.current.set(cacheKey, { value: completion, at: Date.now() });
+
+            // Insert at cursor.
+            const range = new monaco.Range(
+              position.lineNumber,
+              position.column,
+              position.lineNumber,
+              position.column
+            );
+
+            return {
+              items: [
+                {
+                  insertText: completion,
+                  range,
+                },
+              ],
+              dispose: () => {},
+            };
+          } catch (e: any) {
+            // Ignore abort errors and transient failures.
+            if (e?.name === "AbortError") {
+              return { items: [], dispose: () => {} };
+            }
+            return { items: [], dispose: () => {} };
+          }
+        },
+        freeInlineCompletions: () => {},
+      }
+    );
+
+    providerDisposeRef.current = () => {
+      try {
+        disposable?.dispose?.();
+      } catch {
+        // ignore
+      }
+    };
+  };
+
   return (
     <div className="flex flex-1">
       <div className="flex-1 min-w-0 mr-0.5">
         <MonacoEditor
           height="100%"
-          language={language}
+          language={normalizedLanguage}
           theme="githubDark"
           value={sharedCode}
           beforeMount={handleEditorWillMount}
+          onMount={handleEditorDidMount}
           onChange={handleCode}
           options={{
             minimap: { enabled: true },
@@ -82,6 +251,7 @@ const Editor = ({
             fontFamily:
               "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
             fontLigatures: true,
+            inlineSuggest: { enabled: true },
           }}
           loading={<Loader className="fill-main size-14" />}
         />

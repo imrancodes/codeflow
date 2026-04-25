@@ -43,10 +43,10 @@ const Navbar = ({ data, signOutMutation, isLoading }: NavbarProps) => {
 
   return (
     <>
-      <nav className="flex justify-between items-center rounded-xl bg-white/5 backdrop-blur-md border border-white/20 shadow-lg max-w-6xl mx-auto pr-4">
-        <Link to={"/"} className="flex justify-center items-center">
-          <img src="/logo.png" alt="Logo" className="size-20" />
-          <h1 className="text-2xl -ml-4 font-code">CodeFlow</h1>
+      <nav className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-xl border border-white/20 bg-white/5 px-2 pr-3 shadow-lg backdrop-blur-md sm:px-3 sm:pr-4">
+        <Link to={"/"} className="flex items-center justify-center">
+          <img src="/logo.png" alt="Logo" className="size-14 sm:size-16 md:size-20" />
+          <h1 className="-ml-2 text-lg font-code sm:-ml-3 sm:text-xl md:-ml-4 md:text-2xl">CodeFlow</h1>
         </Link>
 
         {isLoading ? (
@@ -64,16 +64,16 @@ const Navbar = ({ data, signOutMutation, isLoading }: NavbarProps) => {
             </Button>
           </div>
         ) : (
-          <div className="flex justify-center items-center gap-3">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base">
             <Link
               to={"signin"}
-              className="bg-transparent hover:bg-gray-800 cursor-pointer border-white/20 border px-4 py-1 rounded-md"
+              className="cursor-pointer rounded-md border border-white/20 bg-transparent px-3 py-1 hover:bg-gray-800 sm:px-4"
             >
               Log in
             </Link>
             <Link
               to={"signup"}
-              className="bg-main text-black cursor-pointer hover:bg-main/80 px-4 py-1 rounded-md"
+              className="cursor-pointer rounded-md bg-main px-3 py-1 text-black hover:bg-main/80 sm:px-4"
             >
               Sign up
             </Link>

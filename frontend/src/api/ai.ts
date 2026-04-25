@@ -37,3 +37,34 @@ export const useAiChat = () => {
     },
   });
 };
+
+export interface InlineCompletionRequest {
+  language: string;
+  prefix: string;
+  suffix: string;
+  maxTokens?: number;
+}
+
+export interface InlineCompletionResponse {
+  completion: string;
+}
+
+export const fetchInlineCompletion = async (
+  payload: InlineCompletionRequest,
+  signal?: AbortSignal
+): Promise<InlineCompletionResponse> => {
+  const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/ai/inline`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    signal,
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error ?? "Inline completion failed");
+  }
+  return data;
+};

@@ -9,7 +9,7 @@ const Home = () => {
   const signOutMutation = useSignOut();
 
   return (
-    <div className="w-full h-screen relative">
+    <div className="relative w-full min-h-screen overflow-hidden">
       <div className="absolute z-0 inset-0">
         <DotGrid
           dotSize={5}
@@ -23,13 +23,13 @@ const Home = () => {
           returnDuration={1.5}
         />
       </div>
-      <div className="relative z-1 pt-8 px-4">
+      <div className="relative z-1 flex min-h-screen flex-col px-3 pt-4 pb-6 sm:px-4 sm:pt-6">
         <Navbar
           data={data}
           signOutMutation={signOutMutation}
           isLoading={isLoading}
         />
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex flex-1 items-center justify-center px-1 sm:px-4 min-h-0">
           <HomeContent data={data} />
         </div>
       </div>
